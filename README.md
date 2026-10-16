@@ -14,9 +14,3 @@ xelatex target.tex
 chmod +x cleanup
 ./cleanup
 ```
-
-### 
-
-```txt
-
-```
