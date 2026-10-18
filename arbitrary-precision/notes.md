@@ -1,194 +1,266 @@
-# BigInt Algorithms
+# BigInt Arithmetic
 
 ## 1. Representation
 
-Represent an integer as
+Represent an integer using a sign and a digit array.
 
 $$
-N = s\sum_{i=0}^{n-1} d_i 10^i
+A=s_A|A|,\qquad s_A\in\{-1,+1\}
 $$
 
-where:
-- \(s \in \{-1,1\}\) is the sign.
-- \(d_i \in \{0,\ldots,9\}\) is a decimal digit.
-- \(d_0\) is the least significant digit.
-
-Example: \(-4207\) is represented by \(s=-1\) and \(D=[7,0,2,4]\).
-
-## 2. Normalization
-
-- Remove leading zeros.
-- Keep at least one digit.
-- Represent zero as \(s=1\) and \(D=[0]\).
-
-## 3. Absolute Comparison
-
-To compare \(|a|\) and \(|b|\):
-
-1. Compare digit counts.
-2. If equal, compare digits from most significant to least significant.
-
-Return \(1\), \(0\), or \(-1\) if the first magnitude is greater than, equal to, or less than the second.
-
-## 4. Addition
-
-For each digit, compute the sum and carry:
+For base $B$, the magnitude is:
 
 $$
-t = a_i + b_i + c_i
+|A|=\sum_{i=0}^{n-1}a_iB^i
+$$
+
+where $0\le a_i<B$.
+
+For example, with $B=10$, the integer $1234$ is stored in little-endian order as `[4, 3, 2, 1]`.
+
+## 2. `compare_abs(a, b)`
+
+Compare magnitudes without considering signs.
+
+- Different digit lengths: the longer number has the greater magnitude.
+- Equal lengths: compare digits from most significant to least significant.
+- All digits equal: magnitudes are equal.
+
+$$
+\operatorname{compare\_abs}(a,b)
+\begin{cases}
+>0 & |a|>|b|\\
+=0 & |a|=|b|\\
+<0 & |a|<|b|
+\end{cases}
+$$
+
+**Time complexity:** $O(n)$.
+
+## 3. `add_abs(a, b)`
+
+Add magnitudes using carry propagation.
+
+For each digit position:
+
+$$
+t_i=a_i+b_i+c_i
 $$
 
 $$
-r_i = t \bmod 10,\qquad
-c_{i+1} = \left\lfloor \frac{t}{10} \right\rfloor
+r_i=t_i\bmod B
 $$
 
-For signed integers:
-
-- Same signs: add magnitudes and keep the common sign.
-- Different signs: subtract the smaller magnitude from the larger and keep the sign of the larger magnitude.
-- Equal magnitudes: return zero.
-
-## 5. Subtraction
-
-Use negation and addition:
-
 $$
-a-b=a+(-b)
+c_{i+1}=\left\lfloor\frac{t_i}{B}\right\rfloor
 $$
 
-Negate \(b\) by reversing its sign, then apply the addition algorithm. Normalize zero to a positive sign.
+Initially, $c_0=0$. Append the final carry if nonzero.
 
-## 6. Magnitude Subtraction
-
-Assume \(|a|\ge |b|\). For each digit, compute
+Example:
 
 $$
-t_i=a_i-b_i-\operatorname{borrow}_i
+789+156=945
 $$
 
-If \(t_i<0\):
+**Time complexity:** $O(n)$.
+
+## 4. `sub_abs(a, b)`
+
+Subtract magnitudes using borrowing. Requires $|a|\ge|b|$.
+
+For each digit position:
 
 $$
-r_i=t_i+10,\qquad
-\operatorname{borrow}_{i+1}=1
+t_i=a_i-b_i-q_i
+$$
+
+If $t_i<0$:
+
+$$
+r_i=t_i+B,\qquad q_{i+1}=1
 $$
 
 Otherwise:
 
 $$
-r_i=t_i,\qquad
-\operatorname{borrow}_{i+1}=0
+r_i=t_i,\qquad q_{i+1}=0
 $$
 
-Process all digits, then normalize the result.
+Initially, $q_0=0$. Remove leading zeros from the result.
 
-## 7. Multiplication
-
-Grade-school multiplication accumulates partial products. For digit positions \(i\) and \(j\):
+Example:
 
 $$
-t=r_{i+j}+a_i b_j+c
+502-178=324
 $$
 
-$$
-r_{i+j}=t\bmod 10,\qquad
-c=\left\lfloor\frac{t}{10}\right\rfloor
-$$
+**Time complexity:** $O(n)$.
 
-The product sign is
+## 5. `add(a, b)`
 
-$$
-s_{ab}=s_a s_b
-$$
+Let $a=s_a|a|$ and $b=s_b|b|$.
 
-For operands with \(m\) and \(n\) digits, the time complexity is
+**Same signs:** add magnitudes and preserve the sign.
 
 $$
-O(mn)
+s_a=s_b\implies
+a+b=s_a(|a|+|b|)
 $$
 
-## 8. Division
-
-Perform long division on the absolute values. Process the dividend digits from most significant to least significant.
-
-For each digit \(d\):
-
-1. Bring down the digit:
-
-   $$
-   R\leftarrow 10R+d
-   $$
-
-2. Find the largest quotient digit \(q\in\{0,\ldots,9\}\) satisfying
-
-   $$
-   q|b|\le R
-   $$
-
-3. Update the remainder:
-
-   $$
-   R\leftarrow R-q|b|
-   $$
-
-The quotient sign is \(s_q=s_a s_b\). Integer division truncates toward zero. Division by zero must be rejected.
-
-The division invariant is
+**Different signs:** subtract the smaller magnitude from the larger and use the sign of the operand with the larger magnitude.
 
 $$
-|a|=|b|Q+R,\qquad 0\le R<|b|
-$$
-
-where \(Q\) and \(R\) are the nonnegative quotient magnitude and remainder.
-
-## 9. Comparison Operators
-
-- Different signs: positive is greater than negative.
-- Both positive: compare magnitudes normally.
-- Both negative: reverse the magnitude comparison.
-- Equality: compare normalized signs and magnitudes.
-
-Zero must always have a positive sign.
-
-## 10. Random Generation
-
-To generate an \(n\)-digit integer:
-
-1. Require \(n\ge1\).
-2. Generate each digit \(d_i\in\{0,\ldots,9\}\).
-3. Ensure the most significant digit is nonzero:
-
-   $$
-   d_{n-1}\ne0
-   $$
-
-4. Optionally choose \(s\in\{-1,1\}\).
-
-## 11. Input and Output
-
-Digits are stored in reverse order. Print them from \(d_{n-1}\) to \(d_0\), prepending `-` if the integer is negative.
-
-## 12. Correctness Checks
-
-Verify the following identities:
-
-$$
-a+0=a
+|a|>|b|\implies
+a+b=s_a(|a|-|b|)
 $$
 
 $$
-a-a=0
+|a|<|b|\implies
+a+b=s_b(|b|-|a|)
 $$
 
 $$
-a\cdot0=0
+|a|=|b|\implies a+b=0
 $$
 
-For \(b\ne0\), integer division must satisfy
+**Time complexity:** $O(n)$.
+
+## 6. `sub(a, b)`
+
+Subtraction is addition with the second operand negated.
 
 $$
-a=bq+r,\qquad |r|<|b|
+\boxed{a-b=a+(-b)}
 $$
 
-The quotient \(q\) is truncated toward zero, and the remainder \(r\) is zero or has the same sign as \(a\).
+For nonzero $b$, reverse its sign and call `add(a, -b)`. Zero remains non-negative.
+
+Examples:
+
+$$
+15-20=-5
+$$
+
+$$
+(-15)-(-8)=-7
+$$
+
+**Time complexity:** $O(n)$.
+
+## 7. `mult(a, b)`
+
+Grade-school multiplication computes partial products.
+
+$$
+|a|=\sum_{i=0}^{n-1}a_iB^i
+$$
+
+$$
+|b|=\sum_{j=0}^{m-1}b_jB^j
+$$
+
+Therefore:
+
+$$
+|a||b|=
+\sum_{i=0}^{n-1}\sum_{j=0}^{m-1}
+a_ib_jB^{i+j}
+$$
+
+Each digit product contributes to position $i+j$. Accumulate the products, propagate carries, and normalize the result.
+
+The result sign is:
+
+$$
+s_R=s_as_b
+$$
+
+If either operand is zero, return zero.
+
+Example:
+
+$$
+123\times45=5535
+$$
+
+**Time complexity:**
+
+$$
+O(nm)
+$$
+
+For similarly sized operands, this is $O(n^2)$.
+
+## 8. `div(a, b)`
+
+Integer division calculates a quotient $q$ and remainder $r$:
+
+$$
+\boxed{a=bq+r}
+$$
+
+Division by zero must be rejected.
+
+### Long division
+
+Process the dividend from most significant digit to least significant digit. At each step, bring down the next digit:
+
+$$
+r_{\text{temp}}=Br_{\text{old}}+d_i
+$$
+
+Choose the largest quotient digit $q_i$ satisfying:
+
+$$
+q_i|b|\le r_{\text{temp}}
+$$
+
+Update the remainder:
+
+$$
+r_{\text{new}}=r_{\text{temp}}-q_i|b|
+$$
+
+The quotient digits form the final quotient.
+
+For truncation toward zero:
+
+$$
+|q|=\left\lfloor\frac{|a|}{|b|}\right\rfloor
+$$
+
+$$
+s_q=s_as_b
+$$
+
+The remainder satisfies:
+
+$$
+|r|<|b|
+$$
+
+If nonzero, its sign matches the dividend's sign.
+
+Example:
+
+$$
+17=5(3)+2
+$$
+
+$$
+-17=5(-3)+(-2)
+$$
+
+The quotient is $3$ and $-3$, respectively.
+
+## 9. Correctness invariants
+
+- **Digit range:** $0\le a_i<B$.
+- **Canonical zero:** zero is never negative.
+- **Addition:** $a+b=b+a$.
+- **Subtraction:** $a-b=a+(-b)$.
+- **Multiplication:** $ab=ba$.
+- **Division:** $a=bq+r$, with $|r|<|b|$ for nonzero $b$.
+
+All magnitude operations assume normalized operands. `sub_abs(a, b)` additionally requires $|a|\ge|b|$.
