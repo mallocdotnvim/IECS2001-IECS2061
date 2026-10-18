@@ -22,4 +22,6 @@ int main(void)
   char *bit = malloc(sizeof(char) * (1 << x));
   
   rec(bit, 0, x);
+
+  return 0;
 }
