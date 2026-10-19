@@ -27,9 +27,13 @@ Compare magnitudes without considering signs.
 - All digits equal: magnitudes are equal.
 
 $$
-add > 0, |a| > |b|\\
-add = 0, |a| = |b|\\
-add < 0, |a| < |b|\\
+add > 0, |a| > |b|
+$$
+$$
+add = 0, |a| = |b|
+$$
+$$
+add < 0, |a| < |b|
 $$
 
 **Time complexity:** $O(n)$.
