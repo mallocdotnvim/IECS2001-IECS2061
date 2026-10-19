@@ -27,12 +27,9 @@ Compare magnitudes without considering signs.
 - All digits equal: magnitudes are equal.
 
 $$
-\operatorname{compare\_abs}(a,b)
-\begin{cases}
->0 & |a|>|b|\\
-=0 & |a|=|b|\\
-<0 & |a|<|b|
-\end{cases}
+add > 0, |a| > |b|\\
+add = 0, |a| = |b|\\
+add < 0, |a| < |b|\\
 $$
 
 **Time complexity:** $O(n)$.
