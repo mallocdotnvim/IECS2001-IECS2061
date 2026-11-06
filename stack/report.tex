@@ -1,0 +1,56 @@
+
+\documentclass[12pt, a4paper]{article}
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fontspec}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showstringspaces=false,
+    tabsize=2
+}
+
+\title{Homework 3: ES String}
+\author{LEE JYUN WEI \hspace{0.1pt} D1450784}
+\date{}
+
+\lstset{style=mystyle}
+
+\begin{document}
+\maketitle
+
+\section{Problem}
+
+Remove all ES substrings using a stack and save
+the result to \texttt{output.txt}.
+
+\section{Code Snippet}
+
+\lstinputlisting[language=C++]{esstring.cpp}
+
+\section{Result}
+
+\lstinputlisting{output.txt}
+
+\section{Editorial}
+
+Characters are pushed onto a stack. When S matches
+an unmatched E, the substring is removed.
+This continues until no ES substring remains.
+
+\end{document}
